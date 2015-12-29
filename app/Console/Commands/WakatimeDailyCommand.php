@@ -46,6 +46,6 @@ class WakatimeDailyCommand extends Command
      */
     public function handle()
     {
-        dd($this->client->currentUser());
+        dd($this->client->commits('0aba0c3c-f60a-4ef5-8755-784f6fc4f5f2'));
     }
 }
