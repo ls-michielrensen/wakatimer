@@ -81,8 +81,9 @@ $app->singleton(
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
-$app->register(App\Providers\ApiServiceProvider::class);
-$app->register(App\Providers\ConsoleServiceProvider::class);
+$app->register(App\Providers\WakatimeServiceProvider::class);
+$app->register(App\Providers\JiraServiceProvider::class);
+$app->register(App\Providers\TimerServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

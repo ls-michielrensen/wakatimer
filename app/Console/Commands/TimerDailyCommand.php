@@ -4,39 +4,39 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Laravel\Lumen\Application;
-use Mabasic\WakaTime\WakaTime;
+use SEOshop\Service\Contracts\TimerServiceInterface;
 
-class WakatimeDailyCommand extends Command
+class TimerDailyCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'wakatime:daily {project?}';
+    protected $signature = 'timer:daily {project?}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Get daily commit stats per project';
+    protected $description = 'Get daily timer stats per project';
 
     /**
-     * @var WakaTime
+     * @var TimerServiceInterface
      */
-    protected $client;
+    protected $service;
 
     /**
      * Create a new command instance.
 
      * @return void
      */
-    public function __construct(Application $app)
+    public function __construct(Application $app, TimerServiceInterface $service)
     {
         parent::__construct();
 
-        $this->client = $app->make('Wakatime\API');
+        $this->service = $service;
     }
 
     /**
@@ -46,6 +46,6 @@ class WakatimeDailyCommand extends Command
      */
     public function handle()
     {
-        dd($this->client->commits('0aba0c3c-f60a-4ef5-8755-784f6fc4f5f2'));
+        dd($this->service->handle());
     }
 }
