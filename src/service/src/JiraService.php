@@ -11,6 +11,6 @@ class JiraService implements JiraServiceInterface
     {
         preg_match_all(self::$pattern, $input, $matches);
 
-        return $matches;
+        return $matches[0];
     }
 }

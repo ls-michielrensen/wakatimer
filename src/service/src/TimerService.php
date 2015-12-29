@@ -25,6 +25,20 @@ class TimerService implements TimerServiceInterface
 
     public function handle($project = null)
     {
-        return $this->wakatimeService->daily($project);
+        $commits = $this->wakatimeService->daily($project);
+
+        return $this->parseCommits(array_shift($commits));
+    }
+
+    protected function parseCommits($commits)
+    {
+        $return = [];
+
+        foreach($commits['commits'] as $commit)
+        {
+            $return[] = $this->jiraService->parseTicket($commit['message']);
+        }
+
+        return $return;
     }
 }
