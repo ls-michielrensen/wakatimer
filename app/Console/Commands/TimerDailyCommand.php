@@ -46,6 +46,6 @@ class TimerDailyCommand extends Command
      */
     public function handle()
     {
-        dd($this->service->handle());
+        dd($this->service->handle($this->argument('project')));
     }
 }

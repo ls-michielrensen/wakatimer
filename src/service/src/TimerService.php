@@ -26,7 +26,5 @@ class TimerService implements TimerServiceInterface
     public function handle($project = null)
     {
         return $this->wakatimeService->daily($project);
-
-        return $this->jiraService->parseTicket('sadhgajksdhg AMD-4567 AMD-5678 ahgljsdhfg');
     }
 }
