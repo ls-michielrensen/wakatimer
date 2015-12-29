@@ -36,7 +36,22 @@ class TimerService implements TimerServiceInterface
 
         foreach($commits['commits'] as $commit)
         {
-            $return[] = $this->jiraService->parseTicket($commit['message']);
+            // Find tickets in the commit message
+            $tickets = $this->jiraService->parseTicket($commit['message']);
+
+            if (empty($tickets))
+            {
+                // Try to guess the ticket from the branch name
+                $tickets = $this->jiraService->parseTicket($commit['ref']);
+            }
+
+            if (!empty($tickets))
+            {
+                foreach($tickets as $ticket)
+                {
+                    $return[$ticket][] = $commit;
+                }
+            }
         }
 
         return $return;
