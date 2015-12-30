@@ -4,5 +4,5 @@ namespace SEOshop\Service\Contracts;
 
 interface TimerServiceInterface
 {
-    public function handle();
+    public function handle($date = 'now', $project = null);
 }

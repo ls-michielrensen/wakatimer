@@ -23,37 +23,48 @@ class TimerService implements TimerServiceInterface
         $this->jiraService = $jiraService;
     }
 
-    public function handle($project = null)
+    public function handle($date = 'now', $project = null)
     {
-        $commits = $this->wakatimeService->daily($project);
+        $commits = $this->wakatimeService->daily($date, $project);
+        $commits = array_shift($commits);
 
-        return $this->parseCommits(array_shift($commits));
+        if (empty($commits))
+        {
+            return false;
+        }
+
+        return $this->parseCommits($commits);
     }
 
     protected function parseCommits($commits)
     {
-        $return = [];
+        $time = [];
 
         foreach($commits['commits'] as $commit)
         {
-            // Find tickets in the commit message
-            $tickets = $this->jiraService->parseTicket($commit['message']);
+            // Try to guess the ticket from the branch name
+            $tickets = $this->jiraService->parseTicket($commit['ref']);
 
             if (empty($tickets))
             {
-                // Try to guess the ticket from the branch name
-                $tickets = $this->jiraService->parseTicket($commit['ref']);
+                // Find tickets in the commit message
+                $tickets = $this->jiraService->parseTicket($commit['message']);
             }
 
             if (!empty($tickets))
             {
                 foreach($tickets as $ticket)
                 {
-                    $return[$ticket][] = $commit;
+                    if (!array_key_exists($ticket, $time))
+                    {
+                        $time[$ticket] = 0;
+                    }
+
+                    $time[$ticket] += $commit['total_seconds'];
                 }
             }
         }
 
-        return $return;
+        return $time;
     }
 }
