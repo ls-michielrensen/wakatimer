@@ -13,7 +13,7 @@ class TimerDailyCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'timer:daily {project?}';
+    protected $signature = 'timer:daily {date?} {project?}';
 
     /**
      * The console command description.
@@ -46,6 +46,6 @@ class TimerDailyCommand extends Command
      */
     public function handle()
     {
-        dd($this->service->handle($this->argument('project')));
+        dd($this->service->handle($this->argument('date'), $this->argument('project')));
     }
 }
