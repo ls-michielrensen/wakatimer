@@ -15,10 +15,6 @@ class JiraServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('Jira\API', function ($app) {
-            return null;
-        });
-
         $this->app->bind(JiraServiceInterface::class, JiraService::class);
     }
 }

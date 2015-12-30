@@ -18,14 +18,14 @@ class WakatimeServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('WakaTime\API', function() {
+        $this->app->bind('api.wakatime', function() {
             $apiKey = env('WAKATIME_API_KEY');
 
             return new WakaTime(new Guzzle(), $apiKey);
         });
 
         $this->app->bind(WakatimeServiceInterface::class, function(Application $app) {
-            return new WakatimeService($app->make('WakaTime\API'));
+            return new WakatimeService($app->make('api.wakatime'));
         });
     }
 }

@@ -83,6 +83,7 @@ $app->singleton(
 
 $app->register(App\Providers\WakatimeServiceProvider::class);
 $app->register(App\Providers\JiraServiceProvider::class);
+$app->register(App\Providers\TogglServiceProvider::class);
 $app->register(App\Providers\TimerServiceProvider::class);
 
 /*

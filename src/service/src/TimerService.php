@@ -1,8 +1,10 @@
 <?php
 namespace SEOshop\Service;
 
+use Carbon\Carbon;
 use SEOshop\Service\Contracts\JiraServiceInterface;
 use SEOshop\Service\Contracts\TimerServiceInterface;
+use SEOshop\Service\Contracts\TogglServiceInterface;
 use SEOshop\Service\Contracts\WakatimeServiceInterface;
 
 class TimerService implements TimerServiceInterface
@@ -17,10 +19,16 @@ class TimerService implements TimerServiceInterface
      */
     protected $jiraService;
 
-    public function __construct(WakatimeServiceInterface $wakatimeService, JiraServiceInterface $jiraService)
+    /**
+     * @var TogglServiceInterface
+     */
+    protected $togglService;
+
+    public function __construct(WakatimeServiceInterface $wakatimeService, JiraServiceInterface $jiraService, TogglServiceInterface $togglService)
     {
         $this->wakatimeService = $wakatimeService;
         $this->jiraService = $jiraService;
+        $this->togglService = $togglService;
     }
 
     public function handle($date = 'now', $project = null)
@@ -30,15 +38,38 @@ class TimerService implements TimerServiceInterface
 
         if (empty($commits))
         {
-            return false;
+            return 'No commits or tickets in this timeperiod (or for this project)';
         }
 
         return $this->parseCommits($commits);
     }
 
+    public function exportResults(array $results)
+    {
+        foreach($results as $result)
+        {
+            $totalSeconds = (int) $result['commit']['total_seconds'];
+            $start = Carbon::createFromTimestamp(strtotime($result['commit']['author_date']));
+
+            if ($totalSeconds > 0)
+            {
+                $this->togglService->createTimeEntry([
+                    'time_entry' => [
+                        'description' => $result['commit']['message'],
+                        'start' => $start->subSeconds($totalSeconds)->format('c'),
+                        'duration' => $totalSeconds,
+                        'pid' => 0,
+                        'wid' => env('TOGGL_DEFAULT_WORKSPACE'),
+                        'created_with' => 'wakatimer'
+                    ]
+                ]);
+            }
+        }
+    }
+
     protected function parseCommits($commits)
     {
-        $time = [];
+        $entries = [];
 
         foreach($commits['commits'] as $commit)
         {
@@ -51,20 +82,12 @@ class TimerService implements TimerServiceInterface
                 $tickets = $this->jiraService->parseTicket($commit['message']);
             }
 
-            if (!empty($tickets))
-            {
-                foreach($tickets as $ticket)
-                {
-                    if (!array_key_exists($ticket, $time))
-                    {
-                        $time[$ticket] = 0;
-                    }
-
-                    $time[$ticket] += $commit['total_seconds'];
-                }
-            }
+            $entries[] = [
+                'commit' => $commit,
+                'tickets' => implode(', ', $tickets)
+            ];
         }
 
-        return $time;
+        return $entries;
     }
 }

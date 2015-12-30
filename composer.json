@@ -15,7 +15,8 @@
         "laravel/lumen-framework": "5.1.*",
         "vlucas/phpdotenv": "~1.0",
         "mabasic/wakatime-php-api": "dev-master",
-        "lesstif/php-jira-rest-client": "dev-master"
+        "lesstif/php-jira-rest-client": "dev-master",
+        "ajt/guzzle-toggl": "^0.10.0"
     },
     "require-dev": {
         "phpunit/phpunit": "~4.0",
