@@ -2,6 +2,7 @@
 namespace SEOshop\Service;
 
 use Carbon\Carbon;
+use Exception;
 use SEOshop\Service\Contracts\JiraServiceInterface;
 use SEOshop\Service\Contracts\TimerServiceInterface;
 use SEOshop\Service\Contracts\TogglServiceInterface;
@@ -31,14 +32,13 @@ class TimerService implements TimerServiceInterface
         $this->togglService = $togglService;
     }
 
-    public function handle($date = 'now', $project = null)
+    public function handle($date = 'today', $project = null)
     {
         $commits = $this->wakatimeService->daily($date, $project);
-        $commits = array_shift($commits);
 
         if (empty($commits))
         {
-            return 'No commits or tickets in this timeperiod (or for this project)';
+            throw new Exception('No commits or tickets in this timeperiod (or for this project)');
         }
 
         return $this->parseCommits($commits);
@@ -49,7 +49,7 @@ class TimerService implements TimerServiceInterface
         foreach($results as $result)
         {
             $totalSeconds = (int) $result['commit']['total_seconds'];
-            $start = Carbon::createFromTimestamp(strtotime($result['commit']['author_date']));
+            $start = Carbon::parse($result['commit']['author_date']);
 
             if ($totalSeconds > 0)
             {
@@ -59,7 +59,7 @@ class TimerService implements TimerServiceInterface
                         'start' => $start->subSeconds($totalSeconds)->format('c'),
                         'duration' => $totalSeconds,
                         'pid' => 0,
-                        'wid' => env('TOGGL_DEFAULT_WORKSPACE'),
+                        'wid' => (int) env('TOGGL_DEFAULT_WORKSPACE'),
                         'created_with' => 'wakatimer'
                     ]
                 ]);
@@ -67,24 +67,20 @@ class TimerService implements TimerServiceInterface
         }
     }
 
-    protected function parseCommits($commits)
+    protected function parseCommits($results)
     {
         $entries = [];
 
-        foreach($commits['commits'] as $commit)
+        foreach($results as $project => $commits)
         {
-            // Try to guess the ticket from the branch name
-            $tickets = $this->jiraService->parseTicket($commit['ref']);
-
-            if (empty($tickets))
+            if (empty($commits))
             {
-                // Find tickets in the commit message
-                $tickets = $this->jiraService->parseTicket($commit['message']);
+                continue;
             }
 
             $entries[] = [
-                'commit' => $commit,
-                'tickets' => implode(', ', $tickets)
+                'project' => $project,
+                'commits' => $commits
             ];
         }
 

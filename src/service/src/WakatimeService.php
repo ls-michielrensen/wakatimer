@@ -33,16 +33,17 @@ class WakatimeService implements WakatimeServiceInterface
         return $this->client->commits($project, $author);
     }
 
-    public function daily($date = 'now', $project = null)
+    public function daily($date = 'today', $project = null)
     {
-        $return = [];
-        $checkpoint = Carbon::createFromTimestamp(strtotime($date));
+        $results = [];
+        $checkpoint = Carbon::parse($date);
 
         if ($project !== null)
         {
+
             $project = $this->projects($project);
 
-            $return[] = $this->getCommitsByProject($project['data'], $checkpoint);
+            $results[$project['data']['repository']['name']] = $this->getCommitsByProject($project['data'], $checkpoint);
         }
         else
         {
@@ -52,25 +53,29 @@ class WakatimeService implements WakatimeServiceInterface
             {
                 if ($project['repository'] !== null)
                 {
-                    $return[] = $this->getCommitsByProject($project, $checkpoint);
+                    $results[$project['repository']['name']] = $this->getCommitsByProject($project, $checkpoint);
                 }
             }
         }
 
-        return $return;
+        return $results;
     }
 
     protected function getCommitsByProject($project, $checkpoint)
     {
-        $commits = [];
-        $checkpoint = Carbon::createFromTimestamp(strtotime($checkpoint));
-        $lastSyncedAt = Carbon::createFromTimestamp(strtotime($project['repository']['last_synced_at']));
+        $results = [];
+        $commits = $this->commits($project['id']);
 
-        if ($lastSyncedAt->isSameDay($checkpoint))
+        foreach($commits['commits'] as $commit)
         {
-            $commits = $this->commits($project['id']);
+            $authorDate = Carbon::parse($commit['author_date']);
+
+            if ($authorDate->isSameDay($checkpoint))
+            {
+                $results[] = $commit;
+            }
         }
 
-        return $commits;
+        return $results;
     }
 }

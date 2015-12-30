@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Laravel\Lumen\Application;
+use SEOshop\Service\Contracts\JiraServiceInterface;
 use SEOshop\Service\Contracts\TimerServiceInterface;
 
 class TimerDailyCommand extends Command
@@ -28,18 +30,24 @@ class TimerDailyCommand extends Command
     /**
      * @var TimerServiceInterface
      */
-    protected $service;
+    protected $timerService;
+
+    /**
+     * @var JiraServiceInterface
+     */
+    protected $jiraService;
 
     /**
      * Create a new command instance.
 
      * @return void
      */
-    public function __construct(Application $app, TimerServiceInterface $service)
+    public function __construct(Application $app, TimerServiceInterface $timerService, JiraServiceInterface $jiraService)
     {
         parent::__construct();
 
-        $this->service = $service;
+        $this->timerService = $timerService;
+        $this->jiraService = $jiraService;
     }
 
     /**
@@ -49,39 +57,56 @@ class TimerDailyCommand extends Command
      */
     public function handle()
     {
-        $results = $this->service->handle($this->argument('date'), $this->argument('project'));
+        try {
+            $results = $this->timerService->handle($this->argument('date'), $this->argument('project'));
 
-        $parsed = $this->parseResults($results);
+            $export = $this->option('export');
 
-        $export = $this->option('export');
+            if ($export === true)
+            {
+                $this->timerService->exportResults($results);
+            }
 
-        if ($export === true)
-        {
-            $this->service->exportResults($results);
+            // Display results
+            $this->displayResults($results);
         }
-
-        // Display results
-        $this->table($parsed['headers'], $parsed['rows']);
+        catch (Exception $e) {
+            $this->error($e->getMessage());
+        }
     }
 
-    protected function parseResults($results)
+    protected function displayResults($results)
     {
-        $headers = ['description', 'tickets', 'time'];
-
-        $rows = [];
+        $headers = ['project', 'author', 'description', 'date', 'tickets', 'time'];
 
         foreach($results as $result)
         {
-            $rows[] = [
-                'description' => '- ' . $result['commit']['message'],
-                'ticket' => $result['tickets'],
-                'time' => $result['commit']['total_seconds'],
-            ];
-        }
+            $rows = [];
 
-        return [
-            'headers' => $headers,
-            'rows' => $rows
-        ];
+            foreach($result['commits'] as $commit)
+            {
+                // Try to guess the ticket from the branch name
+                $tickets = $this->jiraService->parseTicket(array_get($commit, 'ref'));
+
+                if (empty($tickets))
+                {
+                    // Find tickets in the commit message
+                    $tickets = $this->jiraService->parseTicket(array_get($commit, 'message'));
+                }
+
+                $rows[] = [
+                    'project' => $result['project'],
+                    'author' => $commit['author_name'],
+                    'description' => '- ' . $commit['message'],
+                    'date' => $commit['author_date'],
+                    'ticket' => implode(', ', $tickets),
+                    'time' => $commit['total_seconds'],
+                ];
+            }
+
+            $this->info($result['project']);
+            $this->table($headers, $rows);
+            $this->line('');
+        }
     }
 }
