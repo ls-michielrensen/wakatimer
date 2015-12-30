@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "22e1d440ef7f26aa7104757f80274172",
+    "hash": "5d1d9ac3a9726b898f77821d43888755",
     "content-hash": "2eaece921d5b00ce01f38a4b67f3d9a2",
     "packages": [
         {
@@ -1540,12 +1540,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/michielrensen/wakatime-php-api.git",
-                "reference": "9caa113ebcda1df69cabc86847ada66a4c454a2b"
+                "reference": "1bc640138c78118cba1fbcb24fd9c2c41654667d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michielrensen/wakatime-php-api/zipball/9caa113ebcda1df69cabc86847ada66a4c454a2b",
-                "reference": "9caa113ebcda1df69cabc86847ada66a4c454a2b",
+                "url": "https://api.github.com/repos/michielrensen/wakatime-php-api/zipball/1bc640138c78118cba1fbcb24fd9c2c41654667d",
+                "reference": "1bc640138c78118cba1fbcb24fd9c2c41654667d",
                 "shasum": ""
             },
             "require": {
@@ -1580,7 +1580,7 @@
             "support": {
                 "source": "https://github.com/michielrensen/wakatime-php-api/tree/master"
             },
-            "time": "2015-12-29 15:38:11"
+            "time": "2015-12-30 08:06:11"
         },
         {
             "name": "mockery/mockery",
