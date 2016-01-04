@@ -100,7 +100,7 @@ class TimerDailyCommand extends Command
                     'description' => '- ' . $commit['message'],
                     'date' => $commit['author_date'],
                     'ticket' => implode(', ', $tickets),
-                    'time' => $commit['total_seconds'],
+                    'time (s)' => $commit['total_seconds'],
                 ];
             }
 
