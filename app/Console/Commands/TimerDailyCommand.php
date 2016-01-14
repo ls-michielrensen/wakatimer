@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
 use Laravel\Lumen\Application;
@@ -77,7 +78,7 @@ class TimerDailyCommand extends Command
 
     protected function displayResults($results)
     {
-        $headers = ['project', 'author', 'description', 'date', 'tickets', 'time'];
+        $headers = ['date', 'project', 'author', 'description', 'tickets', 'time'];
 
         foreach($results as $result)
         {
@@ -95,16 +96,19 @@ class TimerDailyCommand extends Command
                 }
 
                 $rows[] = [
+                    'date' => Carbon::parse($commit['author_date'])->format('d-m-Y H:i:s'),
                     'project' => $result['project'],
                     'author' => $commit['author_name'],
-                    'description' => '- ' . $commit['message'],
-                    'date' => $commit['author_date'],
+                    'description' => '- ' . mb_strimwidth($commit['message'], 0, 150, '...'),
                     'ticket' => implode(', ', $tickets),
                     'time (s)' => $commit['total_seconds'],
                 ];
             }
 
-            $this->info($result['project']);
+            $this->comment('Project: ' . $result['project']);
+            $this->comment('Date of report: ' . Carbon::parse($commit['author_date'])->format('d-m-Y'));
+            $this->comment('Amount of commits: ' . count($rows));
+            $this->line('');
             $this->table($headers, $rows);
             $this->line('');
         }
