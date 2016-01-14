@@ -28,9 +28,9 @@ class WakatimeService implements WakatimeServiceInterface
         return $this->client->projects();
     }
 
-    public function commits($project, $author = null)
+    public function commits($project, $author = null, $page = 1)
     {
-        return $this->client->commits($project, $author);
+        return $this->client->commits($project, $author, $page);
     }
 
     public function daily($date = 'today', $project = null)
@@ -61,10 +61,9 @@ class WakatimeService implements WakatimeServiceInterface
         return $results;
     }
 
-    protected function getCommitsByProject($project, $checkpoint)
+    protected function getCommitsByProject($project, $checkpoint, $page = 1, $results = [])
     {
-        $results = [];
-        $commits = $this->commits($project['id']);
+        $commits = $this->commits($project['id'], null, $page);
 
         foreach($commits['commits'] as $commit)
         {
@@ -74,6 +73,11 @@ class WakatimeService implements WakatimeServiceInterface
             {
                 $results[] = $commit;
             }
+        }
+
+        if (array_key_exists('next_page', $commits) && $authorDate >= $checkpoint)
+        {
+            $results += $this->getCommitsByProject($project, $checkpoint, $commits['next_page'], $results);
         }
 
         return $results;
